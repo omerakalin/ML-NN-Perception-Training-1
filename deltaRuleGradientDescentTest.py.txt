@@ -1,0 +1,58 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load the data
+class2_tr = np.loadtxt('class2_tr.csv', delimiter=',')
+class2_test = np.loadtxt('class2_test.csv', delimiter=',')
+
+X_train = class2_tr[:, :-1]
+y_train = class2_tr[:, -1]
+
+X_test = class2_test[:, :-1]
+y_test = class2_test[:, -1]
+
+# Train the perceptron using delta rule with gradient descent
+perceptron = Perceptron(num_features=2)
+perceptron.train_delta_rule(X_train, y_train, learning_rate=0.1, num_epochs=100)
+
+# Test the perceptron on the test data
+y_pred = [perceptron.predict(x) for x in X_test]
+accuracy = np.mean(y_pred == y_test)
+print('Accuracy: {:.2f}%'.format(accuracy * 100))
+
+# Display the data distribution and classification for the training data
+fig, ax = plt.subplots()
+ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap='coolwarm')
+ax.set_title('Training Data Distribution')
+ax.set_xlabel('Feature 1')
+ax.set_ylabel('Feature 2')
+plt.show()
+
+fig, ax = plt.subplots()
+ax.scatter(X_train[:, 0], X_train[:, 1], c=perceptron.predict(X_train), cmap='coolwarm')
+ax.set_title('Training Data Classification')
+ax.set_xlabel('Feature 1')
+ax.set_ylabel('Feature 2')
+plt.show()
+
+# Display the classification for the test data
+fig, ax = plt.subplots()
+ax.scatter(X_test[:, 0], X_test[:, 1], c=y_test, cmap='coolwarm')
+ax.set_title('Test Data Classification')
+ax.set_xlabel('Feature 1')
+ax.set_ylabel('Feature 2')
+plt.show()
+
+# Display the training error vs iterations
+errors = []
+for i in range(100):
+    perceptron.train_delta_rule(X_train, y_train, learning_rate=0.1, num_epochs=1)
+    y_pred = [perceptron.predict(x) for x in X_train]
+    errors.append(np.mean(y_train != y_pred))
+
+fig, ax = plt.subplots()
+ax.plot(range(1, 101), errors)
+ax.set_title('Training Error vs Iterations')
+ax.set_xlabel('Iteration')
+ax.set_ylabel('Training Error')
+plt.show()

@@ -1,0 +1,87 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load the data
+class2_tr = np.loadtxt('class2_tr.csv', delimiter=',')
+class2_test = np.loadtxt('class2_test.csv', delimiter=',')
+
+X_train = class2_tr[:, :-1]
+y_train = class2_tr[:, -1]
+
+X_test = class2_test[:, :-1]
+y_test = class2_test[:, -1]
+
+class Perceptron:
+    def __init__(self, num_features):
+        self.weights = np.random.rand(num_features)
+        self.bias = np.random.rand()
+        
+    def predict(self, x):
+        activation = np.dot(x, self.weights) + self.bias
+        return np.where(activation >= 0, 1, 0)
+        
+    def train_delta(self, X, y, learning_rate=0.1, num_epochs=100):
+        num_samples = X.shape[0]
+        num_features = X.shape[1]
+        errors = []
+        
+        for epoch in range(num_epochs):
+            y_pred = [self.predict(x) for x in X]
+            error = y - y_pred
+            self.weights += learning_rate * np.dot(X.T, error)
+            self.bias += learning_rate * np.sum(error)
+            errors.append(np.mean(y != y_pred))
+            
+        return errors
+    
+    def train_sgd(self, X, y, learning_rate=0.1, num_epochs=100):
+        num_samples = X.shape[0]
+        num_features = X.shape[1]
+        errors = []
+        
+        for epoch in range(num_epochs):
+            for i in range(num_samples):
+                rand_idx = np.random.randint(num_samples)
+                x = X[rand_idx]
+                y_pred = self.predict(x)
+                error = y[rand_idx] - y_pred
+                
+                self.weights += learning_rate * error * x
+                self.bias += learning_rate * error
+            
+            y_pred = [self.predict(x) for x in X]
+            errors.append(np.mean(y != y_pred))
+            
+        return errors
+
+# Train the perceptron using delta rule with gradient descent
+perceptron = Perceptron(num_features=2)
+errors_delta = perceptron.train_delta(X_train, y_train, learning_rate=0.1, num_epochs=1000)
+
+# Train the perceptron using delta rule with stochastic gradient descent
+perceptron = Perceptron(num_features=2)
+errors_sgd = perceptron.train_sgd(X_train, y_train, learning_rate=0.1, num_epochs=1000)
+
+# Test the perceptron on the test data
+y_pred = [perceptron.predict(x) for x in X_test]
+accuracy = np.mean(y_pred == y_test)
+print('Accuracy: {:.2f}%'.format(accuracy * 100))
+
+# Display the data distribution and classification for the training data
+fig, ax = plt.subplots()
+ax.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap='coolwarm')
+ax.set_title('Training Data Distribution')
+ax.set_xlabel('Feature 1')
+ax.set_ylabel('Feature 2')
+plt.show()
+
+fig, ax = plt.subplots()
+ax.scatter(X_train[:, 0], X_train[:, 1], c=perceptron.predict(X_train), cmap='coolwarm')
+ax.set_title('Training Data Classification')
+ax.set_xlabel('Feature 1')
+ax.set_ylabel('Feature 2')
+plt.show()
+
+# Display the classification for the test data
+fig, ax = plt.subplots()
+ax.scatter(X_test[:, 0], X_test[:, 1], c=y_test
